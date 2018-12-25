@@ -1,7 +1,7 @@
 /* Guitar chord/scale display program
  * Written by: Arthur Singas
  * Objective: 1. Develop an algorithm for properly displaying requested chord shapes/scales in text form
- * 			  2. Indirectly master the notes of the fretboard by attempting to program them
+ * 			  2. Indirectly learn the notes of the fretboard by attempting to program them
 */
 
 /*
