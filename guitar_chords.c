@@ -4,6 +4,7 @@
  * 			  2. Indirectly master the notes of the fretboard by attempting to program them
 */
 
+
 /*
  * Program asks for user input for a note - DONE
  * Pulls up a list of all possible chords with that note as the root
