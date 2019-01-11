@@ -1,3 +1,6 @@
-E:Minor Pentatonic:EADGB
-E:Major Pentatonic:C#F#BEG# 
-C:Minor Pentatonic:CFA#D#G
+E:Minor Pentatonic:E A D G B
+E:Major Pentatonic:E F# G# B C#
+C:Minor Pentatonic:C F A# D# G
+E:Major Scale:E F# G# A B C#
+E:Harmonic Minor:E F# G A B C D#
+E:Natural Minor Scale (Aeolian Mode):E F# G A B C D
