@@ -2,14 +2,14 @@
  * Written by: Arthur Singas
  * Objective: 1. Develop an algorithm for properly displaying requested chord shapes/scales in text form
  * 			  2. Indirectly learn the notes of the fretboard by attempting to program them
-*/
+ *			  3. Come up with some sort of graphical interface instead of displaying using ASCII
+ */
 
 /*
  * Program asks for user input for a note - DONE
- * Pulls up a list of all possible chords with that note as the root
- * Displays the proper fretting in the form of text using print statements
- * Possible implementation of scales and all of their positions, labelling notes of scale
-*/
+ * Displays the proper fretting in the form of text using print statements - DONE
+ * Tabulation of scales with note requested as root, labelling notes of scale across entire fretboard - DONE
+ */
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -20,7 +20,7 @@
 
 /* GLOBAL VARIABLES */	
 char note_requested[MAX_NOTE_SIZE];			/* for storing the note value user requests */
-char chord_or_scale;						/* for taking in user request chords or scale */
+char option;								/* for taking in user request chords or scale or key */
 int num_scales = 0;							/* number of scales seen that are relevant to note_requested */
 char **scales;								/* array of strings to store names of scales */
 char **notes_of_scale;						/* array of strings to store notes of each scale to be then parsed by their spaces */
@@ -30,7 +30,7 @@ char **individual_notes;					/* array of strings that store each note of the sca
 
 /* Struct of fretboard on with 6 arrays of character pointers, each index representing each note
  * on the fretboard starting from the open string (index: [0]) to the 11th. 12th fret is equal to open string
-*/
+ */
 struct fretboard {
 	char *e_string[12];
 	char *b_string[12];
@@ -48,6 +48,11 @@ struct fretboard fret = { { "E", "F", "F#", "G", "G#", "A", "A#", "B", "C", "C#"
 						  { "A", "A#", "B", "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#" },
 						  { "E", "F", "F#", "G", "G#", "A", "A#", "B", "C", "C#", "D", "D#" } };
 
+/* Tabulates the notes of the requested scale in ascii format. Displays frets 0-22 (0 representing open string)
+ * Goes through each note of the fretboard via fretboard structure and compares that note to each of the notes in the individual_notes array.
+ * Compare current note of scale to note on fretboard using strcmp. If they are equal, display it. If not, display "-" to signify that that fret 
+ * on that particular string is not a note of the scale. This method only takes in one "string" of the guitar at a time, so must call 6 times total.
+ */
 void print_scale(int num_notes_in_scale, int scale_index, char *string_name[])
 {
 	int note_at_fret;
@@ -93,6 +98,9 @@ void print_scale(int num_notes_in_scale, int scale_index, char *string_name[])
 	printf("\n");
 }
 
+/* Stores the string that is stored in notes_of_scale into the array called individual_notes. This allows me to parse each note individually
+ * via spaces in the text file 
+ */
 void parse_notes_of_scale(int num_notes_in_scale, int scale_index) 
 {
 	char delimiters[] = " ";
@@ -122,8 +130,9 @@ void parse_notes_of_scale(int num_notes_in_scale, int scale_index)
 	}
 }
 
-/* parse the text file containing all of the scales in the formate of : note:scale name: notes of scale */
-/* store results in the char **scales, only care about scales that have note_requested as first part of string */
+/* Parse the text file containing all of the scales in the formate of : note:scale name:notes of scale 
+ * Store results in the char **scales, only care about scales that have note_requested as first part of string 
+ */
 void parse_available_scales(FILE *in, char *note)
 {															
 	char *check_root;																/* char* to check parsing relevant scale */
@@ -136,13 +145,14 @@ void parse_available_scales(FILE *in, char *note)
 	check_root = strtok(scale_entry_check, delimiters);
 
 	if (strcmp(check_root, note) == 0) {											/* If parsing a line that has root = note_requested */
-			root[num_scales] = strtok(scale_entry, delimiters);
-			scales[num_scales] = strtok(NULL, delimiters);
-			notes_of_scale[num_scales] = strtok(NULL, delimiters);
-			num_scales++;
+		root[num_scales] = strtok(scale_entry, delimiters);
+		scales[num_scales] = strtok(NULL, delimiters);
+		notes_of_scale[num_scales] = strtok(NULL, delimiters);
+		num_scales++;
 	}
 }
 
+/* Counts the number of lines of a file and returns that value as an int. Used when listing available scales/chords to user */
 int get_num_lines_file(char *name)
 {
 	FILE *fp; 
@@ -164,6 +174,7 @@ int get_num_lines_file(char *name)
     return count; 
 } 
 
+/* Takes in input from user. User types in a note on the fretboard that is then returned. */
 char* get_note()
 {
 	char *valid_notes[17] = { "E", "F", "F#", "G", "G#", "A", "A#", "B", "C", "C#", "D", "D#" };	/* list of all valid notes on fretboard */
@@ -192,15 +203,19 @@ char* get_note()
 	}
 }
 
-char get_chord_or_scale()
+/* Method takes in user input and returns 'c' or 's'. 'c' represents that the user wants information about chords. 
+ * 's' represents that the user wants info about scales. 'k' represents that the user wants information about chord progressions/keys 
+ */
+char get_chord_or_scale_or_key()
 {
 	char chord = 'c';
 	char scale = 's';
-	printf("Enter 'c' for chords or 's' for scales relative to %s: ", note_requested);
+	char key = 'k';
+	printf("Enter 'c' for chords, 's' for scales, or 'k' for chords in key relative to %s: ", note_requested);
 	while (1) {
-		scanf(" %c", &chord_or_scale);
-	    if (chord_or_scale == chord || chord_or_scale == scale) {
-			return chord_or_scale;
+		scanf(" %c", &option);
+	    if (option == chord || option == scale || option == key) {
+			return option;
 		} else {
 			printf("Invalid option, re-enter: ");
 			continue;
@@ -208,6 +223,9 @@ char get_chord_or_scale()
 	}
 }
 
+/* Calculates the amount of notes in a scale based on the amount of whitepaces in textfile and returns that value as an int
+ * Used as a parameter when parsing individual notes of scale. 
+ */
 int get_num_notes_in_scale(int scale_index)
 {
 	int count = 0;
@@ -223,6 +241,9 @@ int get_num_notes_in_scale(int scale_index)
 	return count + 1;																/* number of white spaces + 1 = number of notes in scale */
 }
 
+/* Asks user which scale they would like to see tabs of via a list of numbers corresponding to each scale that has the note
+ * requested as root. returns the number in the form of an index used to get the name of scale from the scales array
+ */
 int get_scale_option()
 {
 	int response;
@@ -240,6 +261,12 @@ int get_scale_option()
 	}
 }
 
+int get_key_option()
+{
+
+	return 1;
+}
+
 int main()
 {
 	FILE *to_read = NULL;
@@ -250,19 +277,19 @@ int main()
 	individual_notes = (char **) malloc(100 * sizeof(char *));
 	struct fretboard *fret_point = &fret;
 
-	for (int i = 0; i < 4; i++) {
-		*(root + i) = (char *) malloc(20 * sizeof(char *));
-		*(scales + i) = (char *) malloc(20 * sizeof(char *));
-		*(notes_of_scale + i) = (char *) malloc(20 * sizeof(char *));
-		*(individual_notes + i) = (char *) malloc(20 * sizeof(char *));								
+	for (int i = 0; i < 2; i++) {
+		*(root + i) = (char *) malloc(2 * sizeof(char *));
+		*(scales + i) = (char *) malloc(2 * sizeof(char *));
+		*(notes_of_scale + i) = (char *) malloc(2 * sizeof(char *));
+		*(individual_notes + i) = (char *) malloc(2 * sizeof(char *));								
 	}
 
 	get_note();																		/* Start by asking for a note on the fretboard */
-	get_chord_or_scale();														    /* Ask whether user wants chords or scale */
+	get_chord_or_scale_or_key();												    /* Ask whether user wants chords or scale or key */
 
-	if (chord_or_scale == 's') {													/* Open respective file containing list of scales/chords to parse */
+	if (option == 's') {															/* Open respective file containing list of scales/chords to parse */
 		to_read = fopen("scale_list.txt", "r");
-		printf("list of scales with %s as root: \n", note_requested);
+		printf("List of scales with %s as root: \n", note_requested);
 
 		for (int i = 0; i < get_num_lines_file("scale_list.txt"); i++) {
 			parse_available_scales(to_read, note_requested);
@@ -279,7 +306,7 @@ int main()
 		for (int i = 0; i < 23; i++) {
 			printf("%d ", i);
 		}
-		
+
 		printf("\n");
 		print_scale(num_notes_in_scale, scale_index, fret_point->e_string);
 		print_scale(num_notes_in_scale, scale_index, fret_point->b_string);
@@ -287,11 +314,12 @@ int main()
 		print_scale(num_notes_in_scale, scale_index, fret_point->d_string);
 		print_scale(num_notes_in_scale, scale_index, fret_point->a_string);
 		print_scale(num_notes_in_scale, scale_index, fret_point->low_e_string);
-
+		printf("\n");
 		free(root);
 		fclose(to_read);
-	} else if (chord_or_scale == 'c') {
+	} else if (option == 'c') {
 		to_read = fopen("chord_list.txt", "r");
+	} else if (option == 'k') {
+		to_read = fopen("key_list.txt", "r");
 	}
 }
-
