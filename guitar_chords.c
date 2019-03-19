@@ -1,14 +1,15 @@
 /* Guitar chord/scale display program
  * Written by: Arthur Singas
+ *
  * Objective: 1. Develop an algorithm for properly displaying requested chord shapes/scales in text form
  * 			  2. Indirectly learn the notes of the fretboard by attempting to program them
  *			  3. Come up with some sort of graphical interface instead of displaying using ASCII
- */
-
-/*
- * Program asks for user input for a note - DONE
- * Displays the proper fretting in the form of text using print statements - DONE
- * Tabulation of scales with note requested as root, labelling notes of scale across entire fretboard - DONE
+ *
+ * Tasks: 
+ * 			  1. Program asks for user input for a note - DONE
+ * 			  2. Displays the proper fretting in the form of text using print statements - DONE
+ * 		      3. Tabulation of scales with note requested as root, labelling notes of scale across entire fretboard - DONE
+ * 			  4. Implementation of a structure representing a fretboard containing only flats - DONE
  */
 
 #include <stdlib.h>
@@ -48,6 +49,13 @@ struct fretboard fret = { { "E", "F", "F#", "G", "G#", "A", "A#", "B", "C", "C#"
 						  { "A", "A#", "B", "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#" },
 						  { "E", "F", "F#", "G", "G#", "A", "A#", "B", "C", "C#", "D", "D#" } };
 
+struct fretboard fretb = { { "E", "F", "Gb", "G", "Ab", "A", "Bb", "B", "C", "Db", "D", "Eb" },
+						   { "B", "C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb" },	
+						   { "G", "Ab", "A", "Bb", "B", "C", "Db", "D", "Eb", "E", "F", "Gb" },							
+						   { "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B", "C", "Db" },
+						   { "A", "Bb", "B", "C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab" },
+						   { "E", "F", "Gb", "G", "Ab", "A", "Bb", "B", "C", "Db", "D", "Eb" } };
+						  
 /* Tabulates the notes of the requested scale in ascii format. Displays frets 0-22 (0 representing open string)
  * Goes through each note of the fretboard via fretboard structure and compares that note to each of the notes in the individual_notes array.
  * Compare current note of scale to note on fretboard using strcmp. If they are equal, display it. If not, display "-" to signify that that fret 
@@ -90,7 +98,6 @@ void print_scale(int num_notes_in_scale, int scale_index, char *string_name[])
 				note_at_fret = 0;
 			}
 		}
-		
 		if (note_at_fret == 0 && fret_num >= 11) {
 			printf(" - ");
 		}
@@ -111,13 +118,13 @@ void parse_notes_of_scale(int num_notes_in_scale, int scale_index)
 			individual_notes[i] = strtok(NULL, delimiters);
 			char* temp = (char *)malloc(10 * sizeof(char));						/* temp string to remove newline and copy back to individual_notes */
 		 	strcpy(temp, individual_notes[i]);
-		 	int j = strlen(individual_notes[i]);								/* integer used to check if last note is a # (size 3) or not (size 2)*/
-			if (j == 2){														/* if last note in scale isnt a sharp note */
+		 	int j = strlen(individual_notes[i]);								/* integer used to check if last note is #/b (size 3) or not (size 2) */
+			if (j == 2){														/* if last note in scale isnt a sharp/flat note */
 				if (temp[1] == '\n') {
     				temp[1] = '\0';
 				}
 			}
-			if (j == 3){														/* If last note in scale IS a sharp note */
+			if (j == 3){														/* If last note in scale IS a sharp/flat note */
 				if (temp[2] == '\n') {
     				temp[2] = '\0';
 				}
@@ -189,8 +196,7 @@ char* get_note()
 		printf("\nEnter a note on the fretboard: ");
 		scanf("%s", note_requested);
 
-		/* Check if user input is a valid note */
-		for (int i = 0; i < 12; i++) {
+		for (int i = 0; i < 12; i++) {												    /* Check if user input is a valid note */
 			if (strcmp(note_requested, valid_notes[i]) == 0) {
 				return note_requested;
 			}
@@ -261,6 +267,22 @@ int get_scale_option()
 	}
 }
 
+/* Returns a 1 if the scale contains any flat notes, returns a 0 otherwise. Method is used when deciding which 
+ * version of the fretboard to compare the scale to. 
+ */
+int check_if_flat(int num_notes)
+{
+	int flag = 0;
+
+	for (int i = 0; i < num_notes; i++){
+		if (strstr(individual_notes[i], "b") != NULL) { 
+			flag = 1;
+			break;
+		} 
+	}
+	return flag;
+}
+
 int get_key_option()
 {
 
@@ -275,7 +297,8 @@ int main()
 	scales = (char **) malloc(100 * sizeof(char *));
 	notes_of_scale = (char **) malloc(100 * sizeof(char *));		
 	individual_notes = (char **) malloc(100 * sizeof(char *));
-	struct fretboard *fret_point = &fret;
+	struct fretboard *fret_points = &fret;											/* fretboard structure for fretboard with sharps */
+	struct fretboard *fret_pointb = &fretb;											/* fretboard structure for fretboard with flats */
 
 	for (int i = 0; i < 2; i++) {
 		*(root + i) = (char *) malloc(2 * sizeof(char *));
@@ -307,18 +330,33 @@ int main()
 			printf("%d ", i);
 		}
 
-		printf("\n");
-		print_scale(num_notes_in_scale, scale_index, fret_point->e_string);
-		print_scale(num_notes_in_scale, scale_index, fret_point->b_string);
-		print_scale(num_notes_in_scale, scale_index, fret_point->g_string);
-		print_scale(num_notes_in_scale, scale_index, fret_point->d_string);
-		print_scale(num_notes_in_scale, scale_index, fret_point->a_string);
-		print_scale(num_notes_in_scale, scale_index, fret_point->low_e_string);
-		printf("\n");
+		if (check_if_flat(num_notes_in_scale) == 1){								/* If the scale contains flats, compare to fretboard with flats */
+			printf("\n");
+			print_scale(num_notes_in_scale, scale_index, fret_pointb->e_string);
+			print_scale(num_notes_in_scale, scale_index, fret_pointb->b_string);
+			print_scale(num_notes_in_scale, scale_index, fret_pointb->g_string);
+			print_scale(num_notes_in_scale, scale_index, fret_pointb->d_string);
+			print_scale(num_notes_in_scale, scale_index, fret_pointb->a_string);
+			print_scale(num_notes_in_scale, scale_index, fret_pointb->low_e_string);
+			printf("\n");
+		}
+
+		if (check_if_flat(num_notes_in_scale) == 0){							    /* If the scale contains sharps, compare to fretboard with sharps */
+			printf("\n");
+			print_scale(num_notes_in_scale, scale_index, fret_points->e_string);
+			print_scale(num_notes_in_scale, scale_index, fret_points->b_string);
+			print_scale(num_notes_in_scale, scale_index, fret_points->g_string);
+			print_scale(num_notes_in_scale, scale_index, fret_points->d_string);
+			print_scale(num_notes_in_scale, scale_index, fret_points->a_string);
+			print_scale(num_notes_in_scale, scale_index, fret_points->low_e_string);
+			printf("\n");
+		}
 		free(root);
 		fclose(to_read);
 	} else if (option == 'c') {
 		to_read = fopen("chord_list.txt", "r");
+		printf("List of scales with %s as root: \n", note_requested);
+
 	} else if (option == 'k') {
 		to_read = fopen("key_list.txt", "r");
 	}

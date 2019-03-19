@@ -2,7 +2,6 @@ E:Minor Pentatonic:E A D G B
 E:Major Pentatonic:E F# G# B C#
 C:Minor Pentatonic:C F A# D# G
 E:Major Scale:E F# G# A B C#
-E:Minor Scale:E F# G A B C D
 E:Harmonic Minor:E F# G A B C D#
 E:Natural Minor Scale (Aeolian Mode):E F# G A B C D
 A:Harmonic Minor:A B C D E F G#
@@ -11,3 +10,7 @@ A:Minor Pentatonic:E G A C D
 G:Hirajoshi:G G# C C# F
 B:Minor Pentatonic:B D E F# A
 D:Minor Pentatonic:D F G A C
+F#:Minor Pentatonic:F# A B C# E
+E:Melodic Minor:E F# G A B C# D#
+A:Minor Scale:A B C D E F G
+C#:Minor Pentatonic:C# E F# G# B
